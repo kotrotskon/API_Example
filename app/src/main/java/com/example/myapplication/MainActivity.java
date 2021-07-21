@@ -4,6 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -27,36 +30,47 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ArrayList<Case> cases = new ArrayList<>();
+        EditText editText = findViewById(R.id.editText);
+        Button button = findViewById(R.id.button);
 
         RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+        ArrayList<Case> cases = new ArrayList<>();
 
-        String url = "https://api.covid19api.com/dayone/country/greece";
-
-        JsonArrayRequest arrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(JSONArray response) {
-                for (int i=0; i<response.length(); i++){
-                    try {
-                        JSONObject jsonObject = response.getJSONObject(i);
-                        Case aCase = new Case(jsonObject);
-                        cases.add(aCase);
+            public void onClick(View view) {
+                String country = editText.getText().toString();
 
-                        Log.d("RESPONSE", jsonObject.getString("Date") + ": " + jsonObject.getInt("Active"));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                String url = "https://api.covid19api.com/dayone/country/"+country;
+
+                JsonArrayRequest arrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        for (int i=0; i<response.length(); i++){
+                            try {
+                                JSONObject jsonObject = response.getJSONObject(i);
+                                Case aCase = new Case(jsonObject);
+                                cases.add(aCase);
+
+                                Log.d("RESPONSE", jsonObject.getString("Date") + ": " + jsonObject.getInt("Active"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        Log.d("RESPONSE", cases.size()+"");
+                        Log.d("RESPONSE", cases.get(265).getDate());
                     }
-                }
-                Log.d("RESPONSE", cases.size()+"");
-                Log.d("RESPONSE", cases.get(265).getDate());
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
 
+                    }
+                });
+
+                queue.add(arrayRequest);
             }
         });
 
-        queue.add(arrayRequest);
+
     }
 }
